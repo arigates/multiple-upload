@@ -43,10 +43,17 @@ class ProjectController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $messages = [
+            'name.required' => 'Nama project wajib isi',
+            'images.*.mimes' => 'Tipe gambar harus jpg,png,jpeg,JPG,JPEG,PNG',
+            'images.*.max' => 'Maksimal ukuran gambar 1MB'
+        ];
+
         $this->validate($request, [
+            'name' => 'required',
             'images' => 'required|array',
             'images.*' => 'mimes:jpg,png,jpeg,JPG,JPEG,PNG|max:1028'
-        ]);
+        ], $messages);
 
         $images = [];
         foreach ($request->images as $image) {
@@ -94,10 +101,17 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
+        $messages = [
+            'name.required' => 'Nama project wajib isi',
+            'images.*.mimes' => 'Tipe gambar harus jpg,png,jpeg,JPG,JPEG,PNG',
+            'images.*.max' => 'Maksimal ukuran gambar 1MB'
+        ];
+
         $this->validate($request, [
+            'name' => 'required',
             'images' => 'nullable|array',
             'images.*' => 'mimes:jpg,png,jpeg,JPG,JPEG,PNG|max:1028'
-        ]);
+        ], $messages);
 
         $images = [];
         if ($request->has('images')) {

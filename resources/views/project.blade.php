@@ -24,7 +24,7 @@
     <div class="row">
         <div class="col-12">
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            <button type="button" class="btn btn-primary" onclick="add()">
                 Tambah Data
             </button>
         </div>
@@ -82,12 +82,14 @@
                         <div class="form-group">
                             <label for="name">Nama Project</label>
                             <input type="text" name="name" id="name" class="form-control" placeholder="input nama project">
+                            <div id="name-feedback" class="invalid-feedback"></div>
                         </div>
                     </div>
                     <div class="col-md-12">
                         <div class="form-group">
                             <label for="image">Gambar Project</label>
-                            <input type="file" multiple id="image-multiple" name="images[]" class="form-control">
+                            <input type="file" multiple id="images" name="images[]" class="form-control">
+                            <div id="images-feedback" class="invalid-feedback"></div>
                             <div class="new-image row"></div>
                             <div class="exists-image row"></div>
                         </div>
@@ -134,14 +136,14 @@
     }
 
     // handle remove image (before uploaded file)
-    $('#image-multiple').on('change', function () {
+    $('#images').on('change', function () {
         $('.new-image').html('');
         previewNewImage(this, '.new-image')
     })
 
     function deleteFile(index) {
         let dt = new DataTransfer()
-        let input = document.getElementById('image-multiple');
+        let input = document.getElementById('images');
         let { files } = input
 
         for (let i = 0; i < files.length; i++) {
@@ -150,7 +152,7 @@
             input.files = dt.files
         }
 
-        $('#image-multiple').trigger('change');
+        $('#images').trigger('change');
     }
 
     function deleteExistsFile(id, project_id) {
@@ -195,14 +197,40 @@
             success: function (data, textStatus, xhr) {
                 alert('Simpan data berhasil');
                 window.location.reload();
+            },
+            error: function (data) {
+                let errors = data['responseJSON']['errors'];
+                if (data.status === 422) {
+                    for (let error in errors) {
+                        let field = error;
+                        if (field.includes('images')){
+                            $('#images').addClass('is-invalid');
+                            console.log(errors[error][0]);
+                            $('#images-feedback').text(errors[error][0]);
+                        } else {
+                            $(`#${field}`).addClass('is-invalid');
+                            $(`#${field}-feedback`).text(errors[error][0]);
+                        }
+                    }
+                }
             }
         });
     });
+
+    function add() {
+        $('.exists-image').html('');
+        $('.new-image').html('');
+        $('.invalid-feedback').html('');
+        $('.form-control').removeClass('is-invalid');
+        $('#exampleModal').modal('show')
+    }
 
     function edit(url) {
         $('#form').attr('action', url);
         $('.exists-image').html('');
         $('.new-image').html('');
+        $('.invalid-feedback').html('');
+        $('.form-control').removeClass('is-invalid');
         $.ajax({
             type: 'GET',
             url: url,
