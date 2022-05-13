@@ -139,6 +139,7 @@ class ProjectController extends Controller
     {
         $project = $project->load('images');
 
+        DB::beginTransaction();
         try {
             foreach ($project->images as $image) {
                 Storage::disk('local')->delete('/projects/'.$image->image_name);
