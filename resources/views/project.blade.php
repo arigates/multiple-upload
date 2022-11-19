@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/screw-filereader@1.4.3/index.min.js"></script>
     <style>
         .img-preview-new {
             max-width: 100%;
@@ -250,6 +251,58 @@
                 window.location.reload();
             }
         })
+    }
+
+    let fileInput = document.getElementById("images")
+
+    fileInput.onchange = async function change() {
+        // set max width
+        const maxWidth = 500
+        // set mx height
+        const maxHeight = 500
+        // set quality
+        const quality = 0.5
+        const result = []
+
+        for (const file of this.files) {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            const img = await file.image()
+
+            // calculate new size
+            const ratio = Math.min(maxWidth / img.width, maxHeight / img.height)
+            const width = img.width * ratio + .5 | 0
+            const height = img.height * ratio + .5 | 0
+
+            // resize the canvas to the new dimensions
+            canvas.width = width
+            canvas.height = height
+
+            // scale & draw the image onto the canvas
+            ctx.drawImage(img, 0, 0, width, height)
+
+            // just to preview
+            // document.body.appendChild(canvas)
+
+            // Get the binary (aka blob)
+            const blob = await new Promise(rs => canvas.toBlob(rs, 'image/jpeg', quality))
+            const resizedFile = new File([blob], file.name, file)
+            result.push(resizedFile)
+        }
+
+        const fileList = new FileListItem(result)
+        fileInput.onchange = null
+        fileInput.files = fileList
+        fileInput.onchange = change
+    }
+
+    // Used for creating a new FileList in a round-about way
+    function FileListItem(a) {
+        a = [].slice.call(Array.isArray(a) ? a : arguments)
+        for (var c, b = c = a.length, d = !0; b-- && d;) d = a[b] instanceof File
+        if (!d) throw new TypeError("expected argument to FileList is File or array of File objects")
+        for (b = (new ClipboardEvent("")).clipboardData || new DataTransfer; c--;) b.items.add(a[c])
+        return b.files
     }
 </script>
 </body>
